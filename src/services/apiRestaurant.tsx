@@ -1,3 +1,5 @@
+import type { orderDataType } from "../types/type";
+
 const API_URL = "https://react-fast-pizza-api.jonas.io/api";
 
 export async function getMenu() {
@@ -18,7 +20,7 @@ export async function getOrder(id: string) {
   return data;
 }
 
-export async function createOrder(newOrder: string) {
+export async function createOrder(newOrder: orderDataType) {
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: "POST",

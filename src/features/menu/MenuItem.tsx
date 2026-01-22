@@ -1,8 +1,12 @@
-function MenuItem({ pizza }) {
-  const { id, name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
+import type { pizzaType } from "../../types/type";
+import { formatCurrency } from "../../utils/helpers";
 
+function MenuItem({ pizza }: {pizza: pizzaType}) {
+  const { id, name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
+  if(!id) return
   return (
     <li>
+
       <img src={imageUrl} alt={name} />
       <div>
         <p>{name}</p>
