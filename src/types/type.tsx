@@ -29,7 +29,16 @@ export type orderDataType = {
   priority: boolean;
 };
 
-
 export type OrderCreationErrorType = {
-  phone?: string
-}
+  phone?: string;
+};
+
+export type ButtonStyleType = "primary" | "small" | "secondary";
+
+export type CartItemType = {
+  pizzaId: number;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};

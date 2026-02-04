@@ -6,7 +6,7 @@ import type { pizzaType } from "../../types/type";
 function Menu() {
   const menu = useLoaderData() as pizzaType[]
   console.log(menu)
-  return <ul>{menu.map(item=> <MenuItem pizza={item} key={item.id}/>)}</ul>;
+  return <ul className="divide-y divide-stone-200 px-2">{menu.map(item=> <MenuItem pizza={item} key={item.id}/>)}</ul>;
 }
 
 
