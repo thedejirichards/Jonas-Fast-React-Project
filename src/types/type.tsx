@@ -42,3 +42,25 @@ export type CartItemType = {
   unitPrice: number;
   totalPrice: number;
 };
+
+
+
+export type ItemType = {
+  addIngredients: string[];
+  name: string;
+  pizzaId: number;
+  quantity: number;
+  removeIngredients: string;
+  totalPrice: number;
+  unitPrice: number;
+};
+
+export type OrderItemType = {
+  item: ItemType,
+  isLoadingIngredients?: boolean,
+  ingredients?: string []
+}
+
+export type InitialCartSliceState = {
+  cart: CartItemType[];
+}

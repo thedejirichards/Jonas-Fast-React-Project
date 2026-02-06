@@ -3,6 +3,10 @@ import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { createOrder } from "../../services/apiRestaurant";
 import type { OrderCreationErrorType } from "../../types/type";
 import Button from "../../ui/Button";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { getCart } from "../cart/cartSlice";
+import EmptyCart from "../cart/EmptyCart";
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str: string) =>
@@ -10,37 +14,40 @@ const isValidPhone = (str: string) =>
     str,
   );
 
-const fakeCart = [
-  {
-    pizzaId: 12,
-    name: "Mediterranean",
-    quantity: 2,
-    unitPrice: 16,
-    totalPrice: 32,
-  },
-  {
-    pizzaId: 6,
-    name: "Vegetale",
-    quantity: 1,
-    unitPrice: 13,
-    totalPrice: 13,
-  },
-  {
-    pizzaId: 11,
-    name: "Spinach and Mushroom",
-    quantity: 1,
-    unitPrice: 15,
-    totalPrice: 15,
-  },
-];
+// const fakeCart = [
+//   {
+//     pizzaId: 12,
+//     name: "Mediterranean",
+//     quantity: 2,
+//     unitPrice: 16,
+//     totalPrice: 32,
+//   },
+//   {
+//     pizzaId: 6,
+//     name: "Vegetale",
+//     quantity: 1,
+//     unitPrice: 13,
+//     totalPrice: 13,
+//   },
+//   {
+//     pizzaId: 11,
+//     name: "Spinach and Mushroom",
+//     quantity: 1,
+//     unitPrice: 15,
+//     totalPrice: 15,
+//   },
+// ];
 
 function CreateOrder() {
   // const [withPriority, setWithPriority] = useState(false);
+    const userName = useSelector((state: RootState) => state.user.username)
+
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const cart = fakeCart;
+  const cart = useSelector(getCart);
   const formErrors = useActionData();
 
+  if(!cart) return <EmptyCart/>
   return (
     <div className="px-4 py-6">
       <h2 className="mb-8 text-xl font-semibold">Ready to order? Let's go!</h2>
@@ -49,7 +56,7 @@ function CreateOrder() {
       <Form method="POST">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sm:basis-40">First Name</label>
-          <input type="text" name="customer" className="input grow" required />
+          <input type="text" name="customer" className="input grow" defaultValue={userName} required />
         </div>
 
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -99,6 +106,8 @@ function CreateOrder() {
     </div>
   );
 }
+
+
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function action({ request }: { request: Request }) {
