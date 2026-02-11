@@ -26,7 +26,7 @@ export type orderDataType = {
   }[];
   customer: string;
   phone: string;
-  priority: boolean;
+  priority: string;
 };
 
 export type OrderCreationErrorType = {
@@ -64,3 +64,21 @@ export type OrderItemType = {
 export type InitialCartSliceState = {
   cart: CartItemType[];
 }
+
+
+export type UserState = {
+  username: string;
+  status: string;
+   position: {
+    latitude?: number;
+    longitude?: number;
+  };
+  address: string;
+  error?: string;
+};
+
+
+/*
+ingredients={fetcher.data?.find((ele) => ele.id ===item.pizzaId)}
+
+*/

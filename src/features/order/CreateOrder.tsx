@@ -3,10 +3,14 @@ import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { createOrder } from "../../services/apiRestaurant";
 import type { OrderCreationErrorType } from "../../types/type";
 import Button from "../../ui/Button";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
-import { getCart } from "../cart/cartSlice";
+import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
 import EmptyCart from "../cart/EmptyCart";
+import store from "../../store";
+import { formatCurrency } from "../../utils/helpers";
+import { useState } from "react";
+import { fetchAddress } from "../user/UserSlice";
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str: string) =>
@@ -39,15 +43,26 @@ const isValidPhone = (str: string) =>
 // ];
 
 function CreateOrder() {
-  // const [withPriority, setWithPriority] = useState(false);
-    const userName = useSelector((state: RootState) => state.user.username)
-
+  const [withPriority, setWithPriority] = useState<boolean>(false);
+  const {
+    username,
+    address,
+    position,
+    status: addressStatus,
+    error: addressError,
+  } = useSelector((state: RootState) => state.user);
+  const isLoadingAddress = addressStatus === "loading";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dispatch = useDispatch<any>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const cart = useSelector(getCart);
+  const totalCartPrice = useSelector(getTotalCartPrice);
+  const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0;
+  const totalPrice = totalCartPrice + priorityPrice;
   const formErrors = useActionData();
 
-  if(!cart) return <EmptyCart/>
+  if (!cart) return <EmptyCart />;
   return (
     <div className="px-4 py-6">
       <h2 className="mb-8 text-xl font-semibold">Ready to order? Let's go!</h2>
@@ -56,7 +71,13 @@ function CreateOrder() {
       <Form method="POST">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sm:basis-40">First Name</label>
-          <input type="text" name="customer" className="input grow" defaultValue={userName} required />
+          <input
+            type="text"
+            name="customer"
+            className="input grow"
+            defaultValue={username}
+            required
+          />
         </div>
 
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -71,16 +92,37 @@ function CreateOrder() {
           </div>
         </div>
 
-        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sm:basis-40">Address</label>
           <div className="grow">
             <input
               type="text"
               name="address"
+              disabled={isLoadingAddress}
+              defaultValue={address}
               className="input w-full"
               required
             />
+            {addressStatus === "error" && (
+              <p className="mt-2 rounded-full bg-red-100 p-2 text-xs text-red-700">
+                {addressError}
+              </p>
+            )}
           </div>
+          {!position.latitude && !position.longitude && (
+            <span className="absolute top-1.5 right-0.75 z-50 md:top-1.25 md:right-1.25">
+              <Button
+                type="small"
+                disabled={isLoadingAddress}
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(fetchAddress());
+                }}
+              >
+                Get Position
+              </Button>
+            </span>
+          )}
         </div>
 
         <div className="mb-12 flex items-center gap-5">
@@ -89,8 +131,8 @@ function CreateOrder() {
             name="priority"
             id="priority"
             className="h-6 w-6 accent-yellow-400 focus:ring focus:ring-yellow-400 focus:ring-offset-2 focus:outline-none"
-            // value={withPriority}
-            // onChange={(e) => setWithPriority(e.target.checked)}
+            checked={withPriority}
+            onChange={(e) => setWithPriority(e.target.checked)}
           />
           <label htmlFor="priority" className="font-medium">
             Want to yo give your order priority?
@@ -98,16 +140,25 @@ function CreateOrder() {
         </div>
         <div>
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <Button type="primary" disabled={isSubmitting}>
-            {isSubmitting ? "Placing order..." : "Order now"}
+          <input
+            type="hidden"
+            name="position"
+            value={
+              position.latitude && position.latitude
+                ? `${position.latitude}, ${position.longitude}`
+                : ""
+            }
+          />
+          <Button type="primary" disabled={isSubmitting || isLoadingAddress}>
+            {isSubmitting
+              ? "Placing order..."
+              : `Order now for ${formatCurrency(totalPrice)}`}
           </Button>
         </div>
       </Form>
     </div>
   );
 }
-
-
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function action({ request }: { request: Request }) {
@@ -119,12 +170,11 @@ export async function action({ request }: { request: Request }) {
     phone: string;
     priority?: string;
   };
-  console.log(data);
 
   const order = {
     ...data,
     cart: JSON.parse(data.cart as string),
-    priority: data.priority === "on",
+    priority: String(data.priority === "on"),
   };
   console.log(order);
   const newOrder = await createOrder(order);
@@ -134,6 +184,7 @@ export async function action({ request }: { request: Request }) {
     errors.phone =
       "Please give us your correct phone number we might need it to contact you";
   if (Object.keys(errors).length > 0) return errors;
+  store.dispatch(clearCart());
   return redirect(`/order/${newOrder.id}`);
 }
 

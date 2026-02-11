@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEventHandler, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ButtonStyleType } from "../types/type";
 
@@ -13,7 +13,7 @@ function Button({
   disabled?: boolean;
   type: ButtonStyleType;
   to?: string;
-  onClick?: ()=> void
+  onClick?: MouseEventHandler<HTMLButtonElement>
 }) {
   const base =
     "cursor-pointer rounded-full text-sm bg-yellow-400 font-semibold tracking-wide text-stone-800 uppercase transition-colors duration-300 hover:bg-yellow-300 focus:bg-yellow-300 focus:ring focus:ring-yellow-300 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed";
